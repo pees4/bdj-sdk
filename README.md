@@ -11,6 +11,7 @@ install dependencies, and compile the source code.
 
 ```console
 sudo apt update
+
 rm -rf bdj-sdk
 sudo apt-get install build-essential libbsd-dev git pkg-config openjdk-8-jdk-headless openjdk-11-jdk-headless
 git clone --recurse-submodules https://github.com/pees4/bdj-sdk
@@ -27,8 +28,21 @@ cd ../../
 
 ```
 
+Untuk membuat payload.jar
+```console
+cd samples/BD-JB-1250/payloads/lapse
+rm samples/BD-JB-1250/payloads/lapse/payload.jar
+make
+cp payload.jar /home/akun/bdj-sdk/samples/BD-JB-1250/src/org/bdj
+cd ../../../../
+
+```
+
 ## Usage example
 ```console
+cd samples/BD-JB-1250/
+make clean
+cd ../../
 chmod +x /home/akun/bdj-sdk/host/bin/bdsigner
 rm samples/BD-JB-1250/RemoteJarLoader.iso
 make -C samples/BD-JB-1250
