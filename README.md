@@ -30,7 +30,7 @@ cd ../../
 ## Usage example
 ```console
 chmod +x /home/akun/bdj-sdk/host/bin/bdsigner
-rm bdj-sdk/samples/BD-JB-1250/RemoteJarLoader.iso
+rm samples/BD-JB-1250/RemoteJarLoader.iso
 make -C samples/BD-JB-1250
 ```
 If everything was built successfully, you will find an BD-RE iso file
