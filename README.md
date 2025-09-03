@@ -10,7 +10,6 @@ On Debian-flavored operating systems, you can invoke the following commands to
 install dependencies, and compile the source code.
 
 ```console
-Buka Ubuntu
 sudo apt update
 rm -rf bdj-sdk
 sudo apt-get install build-essential libbsd-dev git pkg-config openjdk-8-jdk-headless openjdk-11-jdk-headless
