@@ -9,6 +9,7 @@ by [Andrew Randrianasulu][Randrianasulu].
 On Debian-flavored operating systems (seperti Ubuntu), you can invoke the following commands to
 install dependencies, and compile the source code.
 Folder aktif bdj-sdk/
+PERHATIAN: Ganti "akun" dengan user name di Ubuntu Anda !
 
 ```console
 sudo apt update
