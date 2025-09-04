@@ -6,13 +6,13 @@ images, we use a [Linux port][makefs_termux] of [NetBSD makefs][makefs] ported
 by [Andrew Randrianasulu][Randrianasulu].
 
 ## Building
-On Debian-flavored operating systems, you can invoke the following commands to
+On Debian-flavored operating systems (seperti Ubuntu), you can invoke the following commands to
 install dependencies, and compile the source code.
+Folder aktif bdj-sdk/
 
 ```console
 sudo apt update
 
-rm -rf bdj-sdk
 sudo apt-get install build-essential libbsd-dev git pkg-config openjdk-8-jdk-headless openjdk-11-jdk-headless
 git clone --recurse-submodules https://github.com/pees4/bdj-sdk
 ln -s /usr/lib/jvm/java-8-openjdk-amd64 bdj-sdk/host/jdk8
@@ -24,11 +24,35 @@ cd bdj-sdk/samples/BD-JB-1250/
 export BDJSDK_HOME="/home/akun/bdj-sdk"
 export JAVA8_HOME="/usr/lib/jvm/java-8-openjdk-amd64"
 make clean
-cd ../../
+cd ../../../
 
 ```
 
-Untuk membuat payload.jar
+Untuk membuka folder tempat file yang mau diedit:
+```console
+explorer.exe .
+
+```
+
+## Cara membuat aiofix_USBpayload.elf
+Folder aktif ps4-payload-dev/sdk/
+```console
+git clone https://github.com/ps4-payload-dev/sdk ~/ps4-payload-dev/sdk
+cd ps4-payload-dev/sdk
+sudo apt-get update && sudo apt-get upgrade
+sudo apt-get install bash socat llvm clang lld
+sudo apt-get install cmake meson pkg-config
+sudo make DESTDIR=/opt/ps4-payload-sdk install
+
+# Copy folder external dari BD-JB-1250-main/payloads/lapse/src/org/bdj/ ke ps4-payload-dev/sdk/samples/
+rm samples/external/aiofix_USBpayload.elf
+make -C samples/external
+cp ~/ps4-payload-dev/sdk/samples/external/aiofix_USBpayload.elf ~/bdj-sdk/samples/BD-JB-1250/payloads/lapse/src/org/bdj/external/
+cd ../../
+```
+
+## Cara membuat payload.jar
+Folder aktif bdj-sdk/
 ```console
 cd samples/BD-JB-1250/payloads/lapse
 rm samples/BD-JB-1250/payloads/lapse/payload.jar
@@ -38,7 +62,8 @@ cd ../../../../
 
 ```
 
-## Usage example
+## Cara membuat iso
+Folder aktif bdj-sdk/
 ```console
 cd samples/BD-JB-1250/
 make clean
@@ -48,15 +73,15 @@ rm samples/BD-JB-1250/RemoteJarLoader.iso
 make -C samples/BD-JB-1250
 
 ```
-If everything was built successfully, you will find an BD-RE iso file
-`bdj-sdk/samples/BD-JB-1250
+Jika semuanya dibangun dengan sukses, Anda akan menemukan file iso BD-RE di
+`bdj-sdk/samples/BD-JB-1250'
 ```console
 explorer.exe .
 
 ```
 
-[ps3]: https://ps3.brewology.com/downloads/download.php?id=2171&mcid=4
-[hdc]: http://oliverlietz.github.io/bd-j/hdcookbook.html
-[makefs_termux]: https://github.com/Randrianasulu/makefs_termux
-[makefs]: https://man.netbsd.org/makefs.8
-[Randrianasulu]: https://github.com/Randrianasulu
+Credits
+
+* **[TheFlow](https://github.com/theofficialflow)**
+* **[Gezine](https://github.com/Gezine)** 
+* **[john-tornblom](https://github.com/john-tornblom)**
