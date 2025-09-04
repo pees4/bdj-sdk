@@ -49,33 +49,37 @@ rm samples/external/aiofix_USBpayload.elf
 make -C samples/external
 cp ~/ps4-payload-dev/sdk/samples/external/aiofix_USBpayload.elf ~/bdj-sdk/samples/BD-JB-1250/payloads/lapse/src/org/bdj/external/
 cd ../../
+
 ```
 
 ## Cara membuat payload.jar
-Folder aktif bdj-sdk/
+Folder aktif bdj-sdk/samples/BD-JB-1250/payloads/lapse
 ```console
-cd samples/BD-JB-1250/payloads/lapse
-rm samples/BD-JB-1250/payloads/lapse/payload.jar
+cd bdj-sdk/samples/BD-JB-1250/payloads/lapse
+rm payload.jar
 make
 cp payload.jar /home/akun/bdj-sdk/samples/BD-JB-1250/src/org/bdj
-cd ../../../../
+cd ../../
 
 ```
 
-## Cara membuat iso
-Folder aktif bdj-sdk/
+## Cara membuat Lapse.iso
+Folder aktif bdj-sdk/samples/BD-JB-1250
 ```console
 cd samples/BD-JB-1250/
 make clean
 cd ../../
+
+# Folder aktif bdj-sdk
 chmod +x /home/akun/bdj-sdk/host/bin/bdsigner
-rm samples/BD-JB-1250/RemoteJarLoader.iso
+rm samples/BD-JB-1250/Lapse.iso
 make -C samples/BD-JB-1250
 
 ```
-Jika semuanya dibangun dengan sukses, Anda akan menemukan file iso BD-RE di
+### Jika semuanya dibangun dengan sukses, Anda akan menemukan file Lapse.iso BD-RE di
 `bdj-sdk/samples/BD-JB-1250'
 ```console
+cd samples/BD-JB-1250/
 explorer.exe .
 
 ```
