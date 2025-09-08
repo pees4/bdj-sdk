@@ -10,6 +10,7 @@ On Debian-flavored operating systems (seperti Ubuntu), you can invoke the follow
 install dependencies, and compile the source code.
 
 Folder aktif bdj-sdk/
+
 PERHATIAN: Ganti "akun" dengan user name di Ubuntu Anda !
 
 ```console
@@ -78,7 +79,7 @@ rm samples/BD-JB-1250/Lapse.iso
 make -C samples/BD-JB-1250
 
 ```
-### Jika semuanya dibangun dengan sukses, Anda akan menemukan file Lapse.iso BD-RE di
+### Jika semuanya dibangun dengan sukses, Anda akan menemukan file Lapse.iso BD-JB di
 `bdj-sdk/samples/BD-JB-1250'
 ```console
 cd samples/BD-JB-1250/
