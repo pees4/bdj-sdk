@@ -29,7 +29,7 @@ import org.bdj.Status;
 import org.bdj.api.*;
 
 public class Lapse {
-    private static final String VERSION_STRING = "BD-J Lapse 1.2 by Gezine + BD Payload MOD";
+    private static final String VERSION_STRING = "Berhasil";
 
     public static final int MAIN_CORE = 4;
     public static final int MAIN_RTPRIO = 0x100;
@@ -1390,20 +1390,19 @@ public class Lapse {
     }
     
     public static void printReboot() {
-        NativeInvoke.sendNotificationRequest("Exploit failed - Reboot and try again");
+        NativeInvoke.sendNotificationRequest("Gagal, restart PS4 dan coba lagi");
         Status.println("Exploit failed - Reboot and try again");
     }
 
 
     public static void main(String[] args) {
-        NativeInvoke.sendNotificationRequest(VERSION_STRING);
         Status.println("=== LAPSE EXPLOIT ===");
         
         try {
             initializeExploit();
                     
             if (Helper.isJailbroken()) {
-                NativeInvoke.sendNotificationRequest("Already Jailbroken");
+                NativeInvoke.sendNotificationRequest("HEN Sudah Aktif");
                 Status.println("Already Jailbroken");
                 return;
             }
@@ -1460,6 +1459,7 @@ public class Lapse {
                 cleanup();
                 return;
             }
+			NativeInvoke.sendNotificationRequest(VERSION_STRING);
             Status.println("SUCCESS: Stage 4 completed successfully!");
             
             if (!Kernel.postExploitationPS4()) {

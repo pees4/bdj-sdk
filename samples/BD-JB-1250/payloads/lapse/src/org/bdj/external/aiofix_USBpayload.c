@@ -130,7 +130,7 @@ int patch_aio(void * kbase) {
         kernel_copyin(patch, addr, sizeof(patch));
     }
     
-    send_notification("AIO patch completed successfully");
+    // send_notification("AIO patch completed successfully");
     return 0;
 }
 
@@ -428,16 +428,16 @@ void run_usb_payload_logic() {
     for (int i = 0; i < 5; i++) {
         const char* usb_path = USB_PAYLOAD_PATHS[i];
         if (file_exists(usb_path)) {
-            char notification[128];
-            snprintf(notification, sizeof(notification), "USB %s found - executing...", 
-                    strrchr(usb_path, '/') + 1);
-            send_notification(notification);
+            //char notification[128];
+            //snprintf(notification, sizeof(notification), "USB %s found - executing...", 
+            //        strrchr(usb_path, '/') + 1);
+            //send_notification(notification);
             
             if (copy_file(usb_path, DATA_PAYLOAD_PATH) == 0) {
-                char copy_notification[128];
-                snprintf(copy_notification, sizeof(copy_notification), 
-                        "USB payload copied to %s", DATA_PAYLOAD_PATH);
-                send_notification(copy_notification);
+                //char copy_notification[128];
+                //snprintf(copy_notification, sizeof(copy_notification), 
+                //        "USB payload copied to %s", DATA_PAYLOAD_PATH);
+                //send_notification(copy_notification);
             }
 
             execute_payload_from_path(usb_path);
@@ -447,24 +447,24 @@ void run_usb_payload_logic() {
 
     // Priority 2: Check for existing payload in data directory
     if (file_exists(DATA_PAYLOAD_PATH)) {
-        char notification[128];
-        snprintf(notification, sizeof(notification), "%s found - executing...", DATA_PAYLOAD_PATH);
-        send_notification(notification);
+        //char notification[128];
+        //snprintf(notification, sizeof(notification), "%s found - executing...", DATA_PAYLOAD_PATH);
+        //send_notification(notification);
         execute_payload_from_path(DATA_PAYLOAD_PATH);
         return;
     }
 
     // Priority 3: Check for existing payload in blu ray disc
     if (file_exists(BD_PAYLOAD_PATH)) {
-        char notification[128];
-        snprintf(notification, sizeof(notification), "%s found - executing...", BD_PAYLOAD_PATH);
-        send_notification(notification);
+        //char notification[128];
+        //snprintf(notification, sizeof(notification), "%s found - executing...", BD_PAYLOAD_PATH);
+        //send_notification(notification);
 
         if (copy_file(BD_PAYLOAD_PATH, DATA_PAYLOAD_PATH) == 0) {
-            char copy_notification[128];
-            snprintf(copy_notification, sizeof(copy_notification), 
-                    "BD payload copied to %s", DATA_PAYLOAD_PATH);
-            send_notification(copy_notification);
+            //char copy_notification[128];
+            //snprintf(copy_notification, sizeof(copy_notification), 
+            //        "BD payload copied to %s", DATA_PAYLOAD_PATH);
+            //send_notification(copy_notification);
         }
         execute_payload_from_path(BD_PAYLOAD_PATH);
         return;
