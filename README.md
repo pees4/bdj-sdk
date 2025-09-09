@@ -38,16 +38,22 @@ explorer.exe .
 ```
 
 ## Cara membuat aiofix_USBpayload.elf
-Folder aktif ps4-payload-dev/sdk/
 ```console
+rm -rf ps4-payload-dev/sdk
 git clone https://github.com/ps4-payload-dev/sdk ~/ps4-payload-dev/sdk
+
+# Folder aktif ps4-payload-dev/sdk/
 cd ps4-payload-dev/sdk
 sudo apt-get update && sudo apt-get upgrade
 sudo apt-get install bash socat llvm clang lld
 sudo apt-get install cmake meson pkg-config
 sudo make DESTDIR=/opt/ps4-payload-sdk install
 
+export PS4_PAYLOAD_SDK=/opt/ps4-payload-sdk
+
 # Copy folder external dari BD-JB-1250-main/payloads/lapse/src/org/bdj/ ke ps4-payload-dev/sdk/samples/
+chmod +x /home/akun/ps4-payload-dev/sdk/host/bin/orbis-clang
+make clean
 rm samples/external/aiofix_USBpayload.elf
 make -C samples/external
 cp ~/ps4-payload-dev/sdk/samples/external/aiofix_USBpayload.elf ~/bdj-sdk/samples/BD-JB-1250/payloads/lapse/src/org/bdj/external/
