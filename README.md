@@ -9,8 +9,6 @@ by [Andrew Randrianasulu][Randrianasulu].
 On Debian-flavored operating systems (seperti Ubuntu), you can invoke the following commands to
 install dependencies, and compile the source code.
 
-Folder aktif bdj-sdk/
-
 PERHATIAN: Ganti "akun" dengan user name di Ubuntu Anda !
 
 ```console
@@ -23,11 +21,13 @@ ln -s /usr/lib/jvm/java-11-openjdk-amd64 bdj-sdk/host/jdk11
 make -C bdj-sdk/host/src/makefs_termux
 make -C bdj-sdk/host/src/makefs_termux install DESTDIR=$PWD/bdj-sdk/host
 make -C bdj-sdk/target
+
+# Folder aktif bdj-sdk/
 cd bdj-sdk/samples/BD-JB-1250/
 export BDJSDK_HOME="/home/akun/bdj-sdk"
 export JAVA8_HOME="/usr/lib/jvm/java-8-openjdk-amd64"
 make clean
-cd ../../../
+cd
 
 ```
 
@@ -57,29 +57,32 @@ make clean
 rm samples/external/aiofix_USBpayload.elf
 make -C samples/external
 cp ~/ps4-payload-dev/sdk/samples/external/aiofix_USBpayload.elf ~/bdj-sdk/samples/BD-JB-1250/payloads/lapse/src/org/bdj/external/
-cd ../../
+cd
 
 ```
 
 ## Cara membuat payload.jar
 Folder aktif bdj-sdk/samples/BD-JB-1250/payloads/lapse
 ```console
-cd samples/BD-JB-1250/payloads/lapse
+cd bdj-sdk/samples/BD-JB-1250/payloads/lapse
 rm payload.jar
 make
 cp payload.jar /home/akun/bdj-sdk/samples/BD-JB-1250/src/org/bdj
-cd ../../
+cd
 
 ```
 
 ## Cara membuat Lapse.iso
 Folder aktif bdj-sdk/samples/BD-JB-1250
 ```console
-cd samples/BD-JB-1250/
+
+# Copy payload.bin ke dalam folder /bdj-sdk/samples/BD-JB-1250/discdir
+cd bdj-sdk/samples/BD-JB-1250/
 make clean
-cd ../../
+cd
 
 # Folder aktif bdj-sdk
+cd bdj-sdk/
 chmod +x /home/akun/bdj-sdk/host/bin/bdsigner
 rm samples/BD-JB-1250/Lapse.iso
 make -C samples/BD-JB-1250
@@ -88,7 +91,7 @@ make -C samples/BD-JB-1250
 ### Jika semuanya dibangun dengan sukses, Anda akan menemukan file Lapse.iso BD-JB di
 `bdj-sdk/samples/BD-JB-1250'
 ```console
-cd samples/BD-JB-1250/
+cd bdj-sdk/samples/BD-JB-1250/
 explorer.exe .
 
 ```
