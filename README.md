@@ -75,22 +75,21 @@ cd
 ```console
 
 # Folder aktif bdj-sdk/samples/BD-JB-1250
-# Copy payload.bin ke dalam folder /bdj-sdk/samples/BD-JB-1250/discdir
+# Copy payload ke dalam folder /bdj-sdk/resources/AVCHD
+
 cd bdj-sdk/samples/BD-JB-1250/
 make clean
-cd
 
-# Folder aktif bdj-sdk
-cd bdj-sdk/
 chmod +x /home/akun/bdj-sdk/host/bin/bdsigner
-rm samples/BD-JB-1250/Lapse.iso
-make -C samples/BD-JB-1250
+ls -l /home/akun/bdj-sdk/resources/AVCHD/CERTIFICATE/bu.discroot.crt
+make
+
+# Jika ada perubahan, make clean lagi baru make.
 
 ```
 ### Jika semuanya dibangun dengan sukses, Anda akan menemukan file Lapse.iso BD-JB di
 `bdj-sdk/samples/BD-JB-1250'
 ```console
-cd bdj-sdk/samples/BD-JB-1250/
 explorer.exe .
 
 ```
