@@ -15,7 +15,9 @@ PERHATIAN: Ganti "akun" dengan user name di Ubuntu Anda !
 sudo apt update
 
 sudo apt-get install build-essential libbsd-dev git pkg-config openjdk-8-jdk-headless openjdk-11-jdk-headless
+
 git clone --recurse-submodules https://github.com/pees4/bdj-sdk
+
 ln -s /usr/lib/jvm/java-8-openjdk-amd64 bdj-sdk/host/jdk8
 ln -s /usr/lib/jvm/java-11-openjdk-amd64 bdj-sdk/host/jdk11
 make -C bdj-sdk/host/src/makefs_termux
@@ -49,10 +51,8 @@ sudo apt-get install bash socat llvm clang lld
 sudo apt-get install cmake meson pkg-config
 sudo make DESTDIR=/opt/ps4-payload-sdk install
 
-export PS4_PAYLOAD_SDK=/opt/ps4-payload-sdk
-
 # Copy folder external dari BD-JB-1250-main/payloads/lapse/src/org/bdj/ ke ps4-payload-dev/sdk/samples/
-chmod +x /home/akun/ps4-payload-dev/sdk/host/bin/orbis-clang
+export PS4_PAYLOAD_SDK=/opt/ps4-payload-sdk
 make clean
 rm samples/external/aiofix_USBpayload.elf
 make -C samples/external
@@ -64,7 +64,7 @@ cd
 ## Cara membuat payload.jar
 ```console
 cd bdj-sdk/samples/BD-JB-1250/payloads/lapse
-rm payload.jar
+make clean
 make
 cp payload.jar /home/akun/bdj-sdk/samples/BD-JB-1250/src/org/bdj
 cd
