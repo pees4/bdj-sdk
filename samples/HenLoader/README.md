@@ -40,6 +40,7 @@ explorer.exe .
 
 ## Membuat HenLoader.iso
 ```console
+# Folder aktif bdj-sdk/samples/HenLoader/
 make clean
 make -j$(nproc)
 
