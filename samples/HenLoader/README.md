@@ -33,7 +33,8 @@ export JAVA8_HOME="/usr/lib/jvm/java-8-openjdk-amd64"
 
 ```console
 explorer.exe .
-# Download OpenJDK8U-jdk_x64_linux_hotspot_8u462b08.tar.gz di https://github.com/adoptium/temurin8-binaries/releases/tag/jdk8u462-b08 dan copy ke HenLoader/thirdparty/OpenJDK8U-jdk_x64_linux_hotspot_8u462b08.tar.gz
+# Download OpenJDK8U-jdk_x64_linux_hotspot_8u462b08.tar.gz di https://github.com/adoptium/temurin8-binaries/releases/tag/jdk8u462-b08 dan copy ke HenLoader/thirdparty/
+# HenLoader/thirdparty/OpenJDK8U-jdk_x64_linux_hotspot_8u462b08.tar.gz <- disini, cukup 1x saja.
 
 ```
 
