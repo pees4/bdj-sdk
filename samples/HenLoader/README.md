@@ -61,7 +61,6 @@ cd
 
 ```
 
-```
 ### Jika semuanya dibangun dengan sukses, Anda akan menemukan file HenLoader.iso BD-JB di
 `bdj-sdk/samples/HenLoader/build/'
 ```console
