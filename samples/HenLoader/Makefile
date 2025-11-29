@@ -80,7 +80,7 @@ BD_FONT   := $(DISC)/BDMV/AUXDATA/00000.otf
 BD_FNTIDX := $(DISC)/BDMV/AUXDATA/dvb.fontindex
 BD_HEN    := $(DISC)/BDMV/AUXDATA/aiofix_USBpayload.elf
 BD_GH	  := $(DISC)/payload.bin
-# BD_FAN	  := $(DISC)/fancontrol.bin
+BD_FAN	  := $(DISC)/fancontrol.bin
 BD_META   := $(DISC)/BDMV/META/DL/bdmt_eng.xml
 BD_BANNER := $(DISC)/BDMV/META/DL/logo.jpg
 BD_INDEX  := $(DISC)/BDMV/index.bdmv
@@ -89,8 +89,7 @@ BD_ID     := $(DISC)/CERTIFICATE/id.bdmv
 BD_ACRT   := $(DISC)/CERTIFICATE/app.discroot.crt
 BD_BCRT   := $(DISC)/CERTIFICATE/bu.discroot.crt
 BD_ALL    := $(BD_JO) $(BD_JAR) $(BD_FONT) $(BD_FNTIDX) $(BD_META) $(BD_BANNER) \
-             $(BD_INDEX) $(BD_MVOBJ) $(BD_ID) $(BD_ACRT) $(BD_BCRT) $(BD_HEN) $(BD_GH) \
-			 # $(BD_FAN)
+             $(BD_INDEX) $(BD_MVOBJ) $(BD_ID) $(BD_ACRT) $(BD_BCRT) $(BD_HEN) $(BD_GH) $(BD_FAN)
 
 # Create directories
 $(DISC): $(sort $(dir $(BD_ALL)))
@@ -114,8 +113,8 @@ $(BD_HEN): bd-metadata/aiofix_USBpayload.elf $(DISC)
 	cp $< $@
 $(BD_GH): bd-metadata/payload.bin $(DISC)
 	cp $< $@
-# $(BD_FAN): bd-metadata/fancontrol.bin $(DISC)
-# 	cp $< $@
+$(BD_FAN): bd-metadata/fancontrol.bin $(DISC)
+	cp $< $@
 
 # Metadata about the disc, including user-visible name and banner
 $(BD_META): bd-metadata/bdmt_eng.xml $(DISC)
