@@ -60,16 +60,19 @@ git clone https://github.com/ps4-payload-dev/sdk ~/ps4-payload-dev/sdk
 # Folder aktif ps4-payload-dev/sdk/
 cd ps4-payload-dev/sdk
 sudo apt-get update && sudo apt-get upgrade
+
 sudo apt-get install bash socat llvm clang lld
+
 sudo apt-get install cmake meson pkg-config
+
 sudo make DESTDIR=/opt/ps4-payload-sdk install
 
-# Copy folder external dari BD-JB-1250-main/payloads/lapse/src/org/bdj/ ke ps4-payload-dev/sdk/samples/HenLoader/bd-metadata
+# Copy folder aiofix_USBpayload dari HenLoader ke ps4-payload-dev/sdk/samples/
 export PS4_PAYLOAD_SDK=/opt/ps4-payload-sdk
 make clean
-rm samples/external/aiofix_USBpayload.elf
-make -C samples/external
-cp ~/ps4-payload-dev/sdk/samples/external/aiofix_USBpayload.elf ~/bdj-sdk/samples/HenLoader/bd-metadata/
+rm samples/aiofix_USBpayload/aiofix_USBpayload.elf
+make -C samples/aiofix_USBpayload
+cp ~/ps4-payload-dev/sdk/samples/aiofix_USBpayload/aiofix_USBpayload.elf ~/bdj-sdk/samples/HenLoader/bd-metadata/
 cd
 
 ```
@@ -78,6 +81,13 @@ cd
 `bdj-sdk/samples/HenLoader/build/'
 ```console
 explorer.exe .
+
+```
+
+### Jika di github ada perubahan, pakai perintah ini:
+```console
+cd bdj-b
+git pull origin main
 
 ```
 

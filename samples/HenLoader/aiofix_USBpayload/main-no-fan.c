@@ -424,6 +424,7 @@ void payload99() {
         }
     }
 }
+/*
 void fancontrol() {
     // Priority 1: Check for USB fancontrol on usb0-usb4
     for (int i = 0; i < 5; i++) {
@@ -476,21 +477,21 @@ void fancontrol() {
         return;
     }
 }
+*/
 int main() {
-    // Emergency patch
+    
+    //This is for emergency patch.
     payload99();
     
-    // Load payload.bin first
     int patch_result = patch_aio((void*)KERNEL_ADDRESS_IMAGE_BASE);
+    
     if (patch_result == 1) {
         return 0;
     } else {
         setup_payload_paths("payload.bin");
-        run_usb_payload_logic();
     }
-    
-    // Then load fancontrol.bin
-    fancontrol();
+
+    run_usb_payload_logic();
     
     return 0;
 }
