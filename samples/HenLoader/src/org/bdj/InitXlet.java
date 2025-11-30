@@ -20,7 +20,9 @@ public class InitXlet implements Xlet, UserEventListener
     public static final int BUTTON_O = 19;
     public static final int BUTTON_U = 38;
     public static final int BUTTON_D = 40;
+
     private static InitXlet instance;
+    
     public static class EventQueue
     {
         private LinkedList l;
@@ -44,12 +46,14 @@ public class InitXlet implements Xlet, UserEventListener
             return o;
         }
     }
+
     private EventQueue eq;
     private HScene scene;
     private Screen gui;
     private XletContext context;
     private static PrintStream console;
     private static final ArrayList messages = new ArrayList();
+
     public void initXlet(XletContext context)
     {
         // Privilege escalation
@@ -61,17 +65,20 @@ public class InitXlet implements Xlet, UserEventListener
         this.context = context;
         this.eq = new EventQueue();
         scene = HSceneFactory.getInstance().getDefaultHScene();
+
         try
         {
             gui = new Screen(messages);
-            gui.setSize(1920, 1080); // BD screen size
+            gui.setSize(1920, 1080);
             scene.add(gui, BorderLayout.CENTER);
+
             UserEventRepository repo = new UserEventRepository("input");
             repo.addKey(BUTTON_X);
             repo.addKey(BUTTON_O);
             repo.addKey(BUTTON_U);
             repo.addKey(BUTTON_D);
             EventManager.getInstance().addUserEventListener(this, repo);
+
             (new Thread()
             {
                 public void run()
@@ -80,75 +87,116 @@ public class InitXlet implements Xlet, UserEventListener
                     {
                         scene.repaint();
                         console = new PrintStream(new MessagesOutputStream(messages, scene));
-                        //InputStream is = getClass().getResourceAsStream("/program.data.bin");
-                        //CRunTime.init(is);
-    
-                        console.println("HenLoader v1.0, based on:");
+
+                        console.println("HenLoader v1.1 Modified");
                         console.println("- GoldHEN by SiSTR0");
-                        console.println("- Poops code by Theflow0");
-                        console.println("- Lapse code by Gezine");
-                        console.println("- BDJ build environment by Kimariin");
+                        console.println("- Poops by Theflow0");
+                        console.println("- Lapse by Gezine");
+                        console.println("- BDJ environment by Kimariin");
                         console.println("- Java console by Sleirsgoevy");
                         console.println("");
-                        System.gc(); // this workaround somehow makes Call API working
+                        System.gc();
+
                         if (System.getSecurityManager() != null) {
-                            console.println("Priviledge escalation failure, unsupported firmware?");
-                        } else {
-                            Kernel.initializeKernelOffsets();
-                            String fw = Helper.getCurrentFirmwareVersion();
-                            console.println("Firmware: " + fw);
-                            if (!KernelOffset.hasPS4Offsets())
+                            console.println("Privilege escalation gagal! Firmware tidak didukung?");
+                            return;
+                        }
+
+                        Kernel.initializeKernelOffsets();
+                        String fw = Helper.getCurrentFirmwareVersion();
+                        console.println("Firmware: " + fw);
+
+                        if (!KernelOffset.hasPS4Offsets())
+                        {
+                            console.println("Firmware ini belum didukung oleh offset yang ada.");
+                            return;
+                        }
+
+                        boolean isPoopsFW = fw.equals("12.50") || fw.equals("12.52");
+
+                        while (true)
+                        {
+                            console.println("\nTekan X atau O untuk melanjutkan...");
+                            int key = 0;
+
+                            // Tunggu user tekan X atau O
+                            while (key != BUTTON_X && key != BUTTON_O)
                             {
-                                console.println("Unsupported Firmware");
-                            } else {
-                                while (true)
+                                key = pollInput();
+                                Thread.yield();
+                            }
+
+                            console.println("\nMenjalankan exploit...");
+
+                            if (isPoopsFW)
+                            {
+                                // === POOPS (hanya sekali) ===
+                                int result = org.bdj.external.Poops.main(console);
+                                if (result == 0)
                                 {
-                                    int lapseFailCount = 0, c = 0;
-                                    boolean lapseSupported = (!fw.equals("12.50") && !fw.equals("12.52"));
-                                    console.println("\nTekan X untuk lanjut");
-                                    if (lapseSupported) {
-                                        //console.println("* X = Lapse");
-                                        //console.println("* O = Poops");
-                                    } else {
-                                        //console.println("* X = Poops");
-                                    }
-                                    
-                                    while ((c != BUTTON_O || !lapseSupported) && c != BUTTON_X)
+                                    console.println("\nBerhasil !\n\nSelamat menikmati game backup-an Anda.");
+                                    break;
+                                }
+                                else
+                                {
+                                    console.println("\nGagal (kode: " + result + ")");
+                                    console.println("\nTekan tombol PS, Restart PS4 dan coba lagi.");
+                                    break;
+                                }
+                            }
+                            else
+                            {
+                                // === LAPSE (bisa retry) ===
+                                int attempt = 0;
+                                boolean success = false;
+
+                                while (!success && attempt < 3) // maksimal 3 kali retry
+                                {
+                                    attempt++;
+                                    console.println("Percobaan #" + attempt);
+
+                                    int result = org.bdj.external.Lapse.main(console);
+
+                                    if (result == 0)
                                     {
-                                        c = pollInput();
+                                        console.println("\nBerhasil !\n\nSelamat menikmati game backup-an Anda.");
+                                        success = true;
+                                        break;
                                     }
-                                    if (c == BUTTON_X && lapseSupported)
+                                    else if (result <= -6)
                                     {
-                                        int result = org.bdj.external.Lapse.main(console);
-                                        if (result == 0)
+                                        console.println("\nGagal, (kode: " + result + ")");
+                                        console.println("\nExploit tidak bisa dilanjutkan, tekan tombol PS, Restart PS4 dan coba lagi.");
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        console.println("\nGagal, (kode: " + result + "), tapi Anda bisa mencoba lagi...");
+                                        console.println("\nTekan X atau O untuk mencoba lagi...");
+
+                                        key = 0;
+                                        while (key != BUTTON_X && key != BUTTON_O)
                                         {
-                                            console.println("Berhasil");
-                                            break;
+                                            key = pollInput();
+                                            Thread.yield();
                                         }
-                                        if (result <= -6 || lapseFailCount++ >= 3)
-                                        {
-                                            console.println("Gagal (" + result + "), tekan tombol PS, Restart PS4 dan coba lagi.");
-                                            break;
-                                        } else {
-                                            console.println("Gagal (" + result + "), tapi Anda bisa mencoba lagi");
-                                        }
-                                    } else {
-                                        int result = org.bdj.external.Poops.main(console);
-                                        if (result == 0)
-                                        {
-                                            console.println("Berhasil");
-                                            break;
-                                        } else {
-                                            console.println("Gagal (" + result + "), tekan tombol PS, Restart PS4 dan coba lagi.");
-                                            break;
-                                        }
+                                        // console.println("Percobaan ke: " + attempt);
                                     }
                                 }
+
+                                if (success) break;
+
+                                console.println("\nTerlalu banyak kegagalan.\nKeluarkan BD-JB, masukkan lagi, lalu coba lagi.");
+                                break;
                             }
                         }
                     }
                     catch(Throwable e)
                     {
+                        if (console != null) {
+                            console.println("Exception: " + e.toString());
+                            printStackTrace(e);
+                        }
                         scene.repaint();
                     }
                 }
@@ -158,59 +206,67 @@ public class InitXlet implements Xlet, UserEventListener
         {
             printStackTrace(e);
         }
+
         scene.validate();
     }
+
     public void startXlet()
     {
         gui.setVisible(true);
         scene.setVisible(true);
         gui.requestFocus();
     }
+
     public void pauseXlet()
     {
         gui.setVisible(false);
     }
+
     public void destroyXlet(boolean unconditional)
     {
-        scene.remove(gui);
-        scene = null;
+        if (scene != null) {
+            scene.remove(gui);
+            scene = null;
+        }
     }
+
     private void printStackTrace(Throwable e)
     {
+        if (console == null) return;
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         e.printStackTrace(pw);
-        if (console != null)
-            console.print(sw.toString());
+        console.print(sw.toString());
     }
+
     public void userEventReceived(UserEvent evt)
     {
-        boolean ret = false;
         if(evt.getType() == HRcEvent.KEY_PRESSED)
         {
-            ret = true;
-            if(evt.getCode() == BUTTON_U)
+            int code = evt.getCode();
+
+            if(code == BUTTON_U)
                 gui.top += 270;
-            else if(evt.getCode() == BUTTON_D)
+            else if(code == BUTTON_D)
                 gui.top -= 270;
-            else
-                ret = false;
+            else if(code == BUTTON_X || code == BUTTON_O)
+                eq.put(new Integer(code));
+
             scene.repaint();
         }
-        if(ret)
-            return;
-        if(evt.getType() == HRcEvent.KEY_PRESSED)
-            eq.put(new Integer(evt.getCode()));
     }
+
     public static void repaint()
     {
-        instance.scene.repaint();
+        if (instance != null && instance.scene != null)
+            instance.scene.repaint();
     }
+
     public static int pollInput()
     {
+        if (instance == null) return 0;
         Object ans = instance.eq.get();
-        if(ans == null)
-            return 0;
+        if(ans == null) return 0;
         return ((Integer)ans).intValue();
     }
 }
