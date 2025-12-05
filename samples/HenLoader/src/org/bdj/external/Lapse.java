@@ -1239,7 +1239,7 @@ public class Lapse {
             initializeExploit();
 
             if (Helper.isJailbroken()) {
-                NativeInvoke.sendNotificationRequest("Already Jailbroken");
+                NativeInvoke.sendNotificationRequest("Sudah terjailbreak");
                 return 0;
             }
             

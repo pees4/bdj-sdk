@@ -926,7 +926,7 @@ public class Poops {
 
         // check for jailbreak
         if (Helper.isJailbroken()) {
-            NativeInvoke.sendNotificationRequest("Already Jailbroken");
+            NativeInvoke.sendNotificationRequest("Sudah terjailbreak");
             return 0;
         }
 
