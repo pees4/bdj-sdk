@@ -1,160 +1,104 @@
-# BD-JB-1250
-BD-JB for up to PS4 12.50  
-~~This might be the exploit that was reported by TheFlow and patched at 12.52~~  
-Nope TheFlow just confirmed this is not his exploit.  
+# BD-J Linux SDK
+This is a set of tools to simplify building BD-J ISO images on GNU/Linux systems.
+It is an adaptation of the Win32 [minimal BD-J toolkit for the PS3][ps3],
+with an updated authoring tool from [the HD Cookbook][hdc]. For creating ISO
+images, we use a [Linux port][makefs_termux] of [NetBSD makefs][makefs] ported
+by [Andrew Randrianasulu][Randrianasulu].
 
-Just take my early Christmas gift :)  
+## Install SDK
+On Debian-flavored operating systems (seperti Ubuntu), you can invoke the following commands to
+install dependencies, and compile the source code.
 
-No this won't work at PS5.  
+PERHATIAN: Ganti "akun" dengan user name di Ubuntu Anda !
 
-You need to turn off **"Disable Pop-ups while playing video"** on notification setting to get notification.  
+```console
+sudo apt update
 
----
+sudo apt-get install build-essential libbsd-dev git pkg-config openjdk-8-jdk-headless openjdk-11-jdk-headless
 
-## Lapse Exploit (Firmware 9.00 – 12.02 Only)
+git clone --recurse-submodules https://github.com/pees4/bdj-sdk
 
----
+ln -s /usr/lib/jvm/java-8-openjdk-amd64 bdj-sdk/host/jdk8
+ln -s /usr/lib/jvm/java-11-openjdk-amd64 bdj-sdk/host/jdk11
+make -C bdj-sdk/host/src/makefs_termux
+make -C bdj-sdk/host/src/makefs_termux install DESTDIR=$PWD/bdj-sdk/host
+make -C bdj-sdk/target
 
-### 1. Release Contents
+# Folder aktif bdj-sdk/samples/BD-JB-1250/
+cd bdj-sdk/samples/BD-JB-1250/
+export BDJSDK_HOME="/home/akun/bdj-sdk"
+export JAVA8_HOME="/usr/lib/jvm/java-8-openjdk-amd64"
+make clean
+cd
 
-You will find **two ISOs** in the release:
+```
 
-* **`Lapse.iso`** — Contains the Lapse JAR payload built in.
+Untuk membuka folder tempat file yang mau diedit:
+```console
+explorer.exe .
 
-  * Automatically loads `payload.bin` in USB and copies it to `/data/payload.bin`.
-  * BinLoader always listens to 9020 regardless of whether `payload.bin` is found or not.
-* **`RemoteJarLoader.iso`** — Allows you to send your own JAR payload via port **9025**.
+```
 
-  * If you want the same behavior as `Lapse.iso` while using this, send **`Lapse.jar`** as the payload.
+## Cara membuat aiofix_USBpayload.elf
+```console
+rm -rf ps4-payload-dev/sdk
+git clone https://github.com/ps4-payload-dev/sdk ~/ps4-payload-dev/sdk
 
----
+# Folder aktif ps4-payload-dev/sdk/
+cd ps4-payload-dev/sdk
+sudo apt-get update && sudo apt-get upgrade
 
-### 2. Preparing Your USB
+sudo apt-get install bash socat llvm clang lld
 
-* Format as **exFAT** or **FAT32**.
-* Place your homebrew enabler payload (e.g. GoldHEN, ps4-hen) at the root and rename it to `payload.bin`
-* For `Lapse.iso`: payload.bin will be loaded automatically.
-* For `RemoteJarLoader.iso`:
+sudo apt-get install cmake meson pkg-config
 
-  * Send a custom JAR payload, or send **Lapse.jar** to mimic `Lapse.iso`’s behavior.
+sudo make DESTDIR=/opt/ps4-payload-sdk install
 
----
+# Copy folder external dari BD-JB-1250-main/payloads/lapse/src/org/bdj/ ke ps4-payload-dev/sdk/samples/
+export PS4_PAYLOAD_SDK=/opt/ps4-payload-sdk
+make clean
+rm samples/external/aiofix_USBpayload.elf
+make -C samples/external
+cp ~/ps4-payload-dev/sdk/samples/external/aiofix_USBpayload.elf ~/bdj-sdk/samples/BD-JB-1250/payloads/lapse/src/org/bdj/external/
+cd
 
-### 3. PS4 Settings
+```
 
-* **Enable HDCP** in Settings (required for Blu-ray playback).
-* If Blu-ray playback is **not yet activated** which can happen if you are using blu-ray disc for the first time:
+## Cara membuat payload.jar
+```console
+cd bdj-sdk/samples/BD-JB-1250/payloads/lapse
+make clean
+make
+cp payload.jar /home/akun/bdj-sdk/samples/BD-JB-1250/src/org/bdj
+cd
 
-  * **Disable Automatic Updates** first to avoid firmware upgrades.
-  * Connect to the internet once to activate it.
+```
 
----
+## Cara membuat Lapse.iso
+```console
 
-### 4. Running the Exploit
+# Folder aktif bdj-sdk/samples/BD-JB-1250
+# Copy payload ke dalam folder /bdj-sdk/resources/AVCHD
 
-**Step-by-step:**
+cd bdj-sdk/samples/BD-JB-1250/
+make clean
 
-1. Insert the **USB drive first**.
-2. Insert the **Blu-ray disc** (burned with `Lapse.iso` or `RemoteJarLoader.iso`).
-3. Wait for payload delivery:
+chmod +x /home/akun/bdj-sdk/host/bin/bdsigner
+ls -l /home/akun/bdj-sdk/resources/AVCHD/CERTIFICATE/bu.discroot.crt
+make
 
-   * With **Lapse.iso**: payload.bin loads from USB → /data/payload.bin (If USB is not plugged in)
-   * With **RemoteJarLoader**: send JAR payload to port **9025**.
-4. If exploit fails → **Restart the PS4** before retrying.
+# Jika ada perubahan, make clean lagi baru make.
 
-   * Do **not** simply reopen the BD-J app — stability will drop.
+```
+### Jika semuanya dibangun dengan sukses, Anda akan menemukan file Lapse.iso BD-JB di
+`bdj-sdk/samples/BD-JB-1250'
+```console
+explorer.exe .
 
----
+```
 
-### 5. Logging (Optional)
+Credits
 
-* BD-J app logs are sent over network.
-* Use **RemoteLogger**:
-
-  * Server listens on port **18194**.
-  * Run `log_client.py` first, then launch the BD-J app.
-
----
-
-### 6. Burning the Blu-ray ISO
-
-* **Windows**: Use **[ImgBurn](https://www.imgburn.com)**.
-* **Linux**: Use **[K3b](https://apps.kde.org/k3b)**.
-* **macOS**: Use **[BD-SimpleBurn](https://github.com/C4ndyF1sh/BD-SimpleBurn)**.
----
-
-### 7. Adding AIO fixes to Lapse.iso  
-The AIO fixes resolve black screen and save data corruption issues in certain games.  
-**This is only needed for Lapse 1.0, 1.1 and 1.1b** as of 1.2 the fixes are included in the ISO.  
-Do not use any other AIO related fix or plugins with this.  
-
-Video Explanation by @MODDED_WARFARE  
-https://youtu.be/8LJ4ZFjr2Rw
-
-1. Load payload.bin (goldhen or ps4-hen) normally from USB.
-2. Send "[aiofix_network.elf](https://github.com/Gezine/BD-JB-1250/blob/main/payloads/lapse/src/org/bdj/external/aiofix_network.elf)" to HEN's BinLoader using network after HEN is initialized.  
-3. You will get AIO patch completed notification.
-4. You need to send this elf file everytime you run Lapse exploit.  
-5. Or make elf to plugin to load automatically when HEN is loaded.   
----
-
-### 8. Summary Table
-
-| ISO Type               | What it Does              | Ports Used           | Payload Behavior                                            |
-| --------------------- | ------------------------- | ------------------- | ---------------------------------------------------------- |
-| Lapse.iso             | Built-in Lapse JAR payload | 9020 (if bin missing) | Loads `payload.bin` inside USB → `/data/payload.bin`         |
-| RemoteJarLoader.iso   | Custom JAR payload         | 9025                  | Send `Lapse.jar` for default Lapse behavior or your own JAR |
-
----
-
-### 9. Compilation Recommendation
-
-Use john-tornblom's [BDJ-SDK](https://github.com/john-tornblom/bdj-sdk) and [ps4-payload-sdk](https://github.com/ps4-payload-dev/sdk) for compiling.  
-Required rt.jar and bdjstack.jar are under PS4's /system_ex/app/NPXS20113  
-Replace the BDJO file in `BDMV` when building.  
-
----
-
-### 10. Credits
-
-* **[TheFlow](https://github.com/theofficialflow)** — BD-JB documentation & native code execution sources.
-* **[hammer-83](https://github.com/hammer-83)** — PS5 Remote JAR Loader reference.
-* **[john-tornblom](https://github.com/john-tornblom)** — [BDJ-SDK](https://github.com/john-tornblom/bdj-sdk) and [ps4-payload-sdk](https://github.com/ps4-payload-dev/sdk) used for compilation.
-* **[shahrilnet, null\_ptr](https://github.com/shahrilnet/remote_lua_loader)** — Lua Lapse implementation, without which BD-J Lapse was impossible.
-
----
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+* **[TheFlow](https://github.com/theofficialflow)**
+* **[Gezine](https://github.com/Gezine)** 
+* **[john-tornblom](https://github.com/john-tornblom)**
