@@ -1,6 +1,7 @@
 package org.bdj;
 import java.io.*;
 import java.util.*;
+import java.net.*;
 import javax.tv.xlet.*;
 import java.awt.BorderLayout;
 import org.havi.ui.HScene;
@@ -74,19 +75,33 @@ public class InitXlet implements Xlet, UserEventListener
             scene.repaint();
             console = new PrintStream(new MessagesOutputStream(messages, scene));
             console.println("");
-            console.println("HenLoader MOD by CM");
+            console.println("HenLoader by 15432, MOD by CM");
 			console.println("GoldHEN by SiSTR0");
 			console.println("Poops by Theflow0");
-			console.println("Lapse by Gezine");
+			console.println("Lapse by abc, MOD by Gezine");
             console.println("BDJ environment by Kimariin");
             console.println("Java console by Sleirsgoevy");
             console.println("");
             
             System.gc();
-            
+            Socket s = new Socket();
+            byte[][] byteArrays = new byte[100][];
+            for (int i = 0; i < 100; i++) {
+                int size = 0;
+                if (i < 20)
+                    size = 0x100;
+                else if (i < 40)
+                    size = 0x200;
+                else if (i < 60)
+                    size = 0x400;
+                else
+                    size = 0x1000;
+                byteArrays[i] = new byte[size];
+            }
+
             if (System.getSecurityManager() != null)
             {
-                console.println("Privilege escalation gagal! Firmware tidak didukung?");
+                console.println("Privilege escalation gagal!\nUntuk FW >=13.00, copy 00000.jar ke /system_ex/app/NPXS20113/bdjstack/lib/ext PS4");
                 return;
             }
             
@@ -96,15 +111,15 @@ public class InitXlet implements Xlet, UserEventListener
             
             if (!KernelOffset.hasPS4Offsets())
             {
-                console.println("PS4 ini belum support.");
+                console.println("BD-JB tidak support firmware PS4 ini\nPastikan firmware PS4 Anda antara 9.00-13.00.");
                 return;
             }
             
-            boolean isPoopsFW = fw.equals("12.50") || fw.equals("12.52");
+            boolean lapseSupported = (!fw.equals("12.50") && !fw.equals("12.52") && !fw.equals("13.00"));
 
             // Jeda 2 detik sebelum mulai exploit (biar user sempat baca pesan)
-            console.println("\nExploit akan dimulai otomatis dalam 2 detik...");
-            Thread.sleep(2000);
+            // console.println("\nExploit akan dimulai otomatis dalam 2 detik...");
+            // Thread.sleep(1000);
 
             console.println("\nMenjalankan exploit...");
             final int MAX_ATTEMPTS = 2;
@@ -117,31 +132,33 @@ public class InitXlet implements Xlet, UserEventListener
                 attempt++;
                 console.println("\nPercobaan #" + attempt);
                 
-                int result = isPoopsFW
-                    ? org.bdj.external.Poops.main(console)
-                    : org.bdj.external.Lapse.main(console);
+                int result = lapseSupported
+                    ? org.bdj.external.Lapse.main(console)
+                    : org.bdj.external.Poops.main(console);
                     
                 if (result == 0)
                 {
-                    console.println("\nBerhasil !\nSelamat menikmati game backup Anda.");
+                    console.println("\nBerhasil!\nSelamat menikmati game backup Anda.\n\nTahan tombol PS > Close Application/Tutup Aplikasi > OK");
                     success = true;
                 }
                 else if (result <= -6)
                 {
-                    console.println("\nGagal (kode: " + result + ")\nTekan tombol PS, restart PS4, dan coba lagi.");
+                    // console.println("\nGagal (kode: " + result + ")\nTahan tombol PS > Power/Daya > Restart PS4/Mulai Ulang PS4, dan coba lagi.");
+					console.println("\nGagal (kode: " + result + ")\nRestart PS4, dan coba lagi.");
                     fatalError = true;
                 }
                 else
                 {
-                    console.println("Gagal (kode: " + result + "), mencoba ulang dalam 2 detik...");
-                    Thread.sleep(2000); // jeda sebelum coba lagi
+                    console.println("Gagal (kode: " + result + "), mencoba ulang...");
+                    Thread.sleep(1500); // jeda sebelum coba lagi
                 }
             }
             
             if (!success && !fatalError)
             {
-                console.println("\nGagal setelah " + MAX_ATTEMPTS + " percobaan.");
-                console.println("Keluarkan BD-JB dari PS4, lalu masukkan kembali.");
+                console.println("\nSudah " + MAX_ATTEMPTS + " kali gagal dengan kode yang sama");
+                // console.println("Tahan tombol PS > Power/Daya > Restart PS4/Mulai Ulang PS4, dan coba lagi.");
+				console.println("Restart PS4, dan coba lagi.");
             }
         }
         catch (Throwable t)
