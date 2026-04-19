@@ -20,9 +20,9 @@ public class Poops {
     private static final int MSG_IOV_NUM = 0x17;
     private static final int IOV_SIZE = 0x10;
 
-    private static final int IPV6_SOCK_NUM = 200;
+    private static final int IPV6_SOCK_NUM = 128;
 	private static final int TWIN_TRIES   = 4;
-	private static final int UAF_TRIES    = 80000;
+	private static final int UAF_TRIES    = 100000;
     private static final int KQUEUE_TRIES = 300000;
     private static final int IOV_THREAD_NUM = 4;
     private static final int UIO_THREAD_NUM = 4;
