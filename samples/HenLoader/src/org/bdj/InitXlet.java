@@ -141,7 +141,7 @@ public class InitXlet implements Xlet, UserEventListener
                     console.println("\nBerhasil!\nSelamat menikmati game backup Anda.\n\nTahan tombol PS > Close Application/Tutup Aplikasi > OK");
                     success = true;
                 }
-                else if (result <= -6)
+                else if (result <= -4)
                 {
                     // console.println("\nGagal (kode: " + result + ")\nTahan tombol PS > Power/Daya > Restart PS4/Mulai Ulang PS4, dan coba lagi.");
 					console.println("\nGagal (kode: " + result + ")\nRestart PS4, dan coba lagi.");
