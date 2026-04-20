@@ -717,7 +717,7 @@ private static int findTriplet(int master, int other, int timeout) {
             close(kq);
 
             // Find triplet.
-            Thread.sleep(1);
+            // Thread.sleep(1);
 			triplets[1] = findTriplet(triplets[0], triplets[2], UAF_TRIES);
             if (triplets[1] == -1)
             {
