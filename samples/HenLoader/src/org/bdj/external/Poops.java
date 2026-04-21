@@ -997,7 +997,9 @@ private static int findTriplet(int master, int other, int timeout) {
 
         // check for jailbreak
         if (Helper.isJailbroken()) {
-            NativeInvoke.sendNotificationRequest("Sudah terjailbreak");
+            // NativeInvoke.sendNotificationRequest("Sudah terjailbreak");
+			NativeInvoke.sendNotificationRequest("Mengaktifkan Fan Control");
+			FanLoader.start();		
             return 0;
         }
 
@@ -1041,7 +1043,6 @@ private static int findTriplet(int master, int other, int timeout) {
         cleanup();
         NativeInvoke.sendNotificationRequest("Berhasil");
         BinLoader.start();
-
         return 0;
     }
 

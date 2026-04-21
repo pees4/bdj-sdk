@@ -115,7 +115,8 @@ public class InitXlet implements Xlet, UserEventListener
                 return;
             }
             
-            boolean lapseSupported = (!fw.equals("12.50") && !fw.equals("12.52") && !fw.equals("13.00"));
+            // boolean lapseSupported = (!fw.equals("12.50") && !fw.equals("12.52") && !fw.equals("13.00"));
+			boolean PoopsSupported = (!fw.equals("13.02"));
 
             // Jeda 2 detik sebelum mulai exploit (biar user sempat baca pesan)
             // console.println("\nExploit akan dimulai otomatis dalam 2 detik...");
@@ -130,12 +131,15 @@ public class InitXlet implements Xlet, UserEventListener
             while (!success && attempt < MAX_ATTEMPTS && !fatalError)
             {
                 attempt++;
-                console.println("\nPercobaan #" + attempt);
-                
+                // console.println("\nPercobaan #" + attempt);
+                /*
                 int result = lapseSupported
                     ? org.bdj.external.Lapse.main(console)
                     : org.bdj.external.Poops.main(console);
-                    
+                */
+                int result = PoopsSupported
+                    ? org.bdj.external.Poops.main(console)
+                    : org.bdj.external.Lapse.main(console);
                 if (result == 0)
                 {
                     console.println("\nBerhasil!\nSelamat menikmati game backup Anda.\n\nTahan tombol PS > Close Application/Tutup Aplikasi > OK");
