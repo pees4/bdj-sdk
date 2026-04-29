@@ -101,7 +101,7 @@ public class InitXlet implements Xlet, UserEventListener
 
             if (System.getSecurityManager() != null)
             {
-                console.println("Privilege escalation gagal!\nUntuk FW >=13.00, copy 00000.jar ke /system_ex/app/NPXS20113/bdjstack/lib/ext PS4");
+                console.println("Privilege escalation gagal!\nUntuk FW >=13.00, copy 00000.jar ke /system_ex/app/NPXS20113/bdjstack/lib/ext/ PS4");
                 return;
             }
             
@@ -115,12 +115,12 @@ public class InitXlet implements Xlet, UserEventListener
                 return;
             }
             
-            // boolean lapseSupported = (!fw.equals("12.50") && !fw.equals("12.52") && !fw.equals("13.00"));
-			boolean PoopsSupported = (!fw.equals("13.02"));
+            boolean lapseSupported = (!fw.equals("12.50") && !fw.equals("12.52") && !fw.equals("13.00"));
+			// boolean PoopsSupported = (!fw.equals("13.02"));
 
             // Jeda 2 detik sebelum mulai exploit (biar user sempat baca pesan)
             // console.println("\nExploit akan dimulai otomatis dalam 2 detik...");
-            // Thread.sleep(1000);
+            // Thread.sleep(2000);
 
             console.println("\nMenjalankan exploit...");
             final int MAX_ATTEMPTS = 2;
@@ -132,14 +132,14 @@ public class InitXlet implements Xlet, UserEventListener
             {
                 attempt++;
                 // console.println("\nPercobaan #" + attempt);
-                /*
                 int result = lapseSupported
                     ? org.bdj.external.Lapse.main(console)
                     : org.bdj.external.Poops.main(console);
-                */
+                /*
                 int result = PoopsSupported
                     ? org.bdj.external.Poops.main(console)
                     : org.bdj.external.Lapse.main(console);
+                */
                 if (result == 0)
                 {
                     console.println("\nBerhasil!\nSelamat menikmati game backup Anda.\n\nTahan tombol PS > Close Application/Tutup Aplikasi > OK");
@@ -154,13 +154,13 @@ public class InitXlet implements Xlet, UserEventListener
                 else
                 {
                     console.println("Gagal (kode: " + result + "), mencoba ulang...");
-                    Thread.sleep(1500); // jeda sebelum coba lagi
+                    Thread.sleep(3000); // jeda sebelum coba lagi
                 }
             }
             
             if (!success && !fatalError)
             {
-                console.println("\nSudah " + MAX_ATTEMPTS + " kali gagal dengan kode yang sama");
+                // console.println("\nSudah " + MAX_ATTEMPTS + " kali gagal dengan kode yang sama");
                 // console.println("Tahan tombol PS > Power/Daya > Restart PS4/Mulai Ulang PS4, dan coba lagi.");
 				console.println("Restart PS4, dan coba lagi.");
             }
